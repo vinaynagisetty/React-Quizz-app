@@ -1,76 +1,72 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Question from "./Components/Question";
 import qBank from "./Components/QuestionBank";
 import Score from "./Components/Score";
 import "./App.css";
- 
-class App extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            questionBank: qBank,
-            currentQuestion: 0,
-            selectedOption: "",
-            score: 0,
-            quizEnd: false,
-        };
-    }
- 
-    handleOptionChange = (e) => {
-        this.setState({ selectedOption: e.target.value });
+
+const App = () => {
+    const [questionBank, setQuestionBank] = useState(qBank);
+    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [selectedOption, setSelectedOption] = useState("");
+    const [score, setScore] = useState(0);
+    const [quizEnd, setQuizEnd] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const handleOptionChange = (e) => {
+        setSelectedOption(e.target.value);
+        setErrorMessage(""); // Clear error message when an option is selected
     };
- 
-    handleFormSubmit = (e) => {
+
+    const handleFormSubmit = (e) => {
         e.preventDefault();
-        this.checkAnswer();
-        this.handleNextQuestion();
+        if (!selectedOption) {
+            setErrorMessage("Please select an option before proceeding.");
+            return;
+        }
+        checkAnswer();
+        handleNextQuestion();
     };
- 
-    checkAnswer = () => {
-        const { questionBank, currentQuestion, selectedOption, score } = this.state;
+
+    const checkAnswer = () => {
         if (selectedOption === questionBank[currentQuestion].answer) {
-            this.setState((prevState) => ({ score: prevState.score + 1 }));
+            setScore(score + 1);
         }
     };
- 
-    handleNextQuestion = () => {
-        const { questionBank, currentQuestion } = this.state;
+
+    const handleNextQuestion = () => {
         if (currentQuestion + 1 < questionBank.length) {
-            this.setState((prevState) => ({
-                currentQuestion: prevState.currentQuestion + 1,
-                selectedOption: "",
-            }));
+            setCurrentQuestion(currentQuestion + 1);
+            setSelectedOption("");
         } else {
-            this.setState({
-                quizEnd: true,
-            });
+            setQuizEnd(true);
         }
     };
- 
-    render() {
-        const { questionBank, currentQuestion, selectedOption, score, quizEnd } =
-            this.state;
-        return (
-            <div className="App d-flex flex-column align-items-center justify-content-center">
-                <h1 className="app-title">QUIZ APP</h1>
-                {!quizEnd ? (
-                    <Question
-                        question={questionBank[currentQuestion]}
-                        selectedOption={selectedOption}
-                        onOptionChange={this.handleOptionChange}
-                        onSubmit={this.handleFormSubmit}
-                    />
-                ) : (
-                    <Score
-                        score={score}
-                        onNextQuestion={this.handleNextQuestion}
-                        className="score"
-                    />
-                )}
-            </div>
-        );
-    }
-}
- 
+
+    const handleReset = () => {
+        setCurrentQuestion(0);
+        setSelectedOption("");
+        setScore(0);
+        setQuizEnd(false);
+        setErrorMessage("");
+    };
+
+    return (
+        <div className="App d-flex flex-column align-items-center justify-content-center">
+            <h1 className="app-title">QUIZ APP</h1>
+            {!quizEnd ? (
+                <Question
+                    question={questionBank[currentQuestion]}
+                    selectedOption={selectedOption}
+                    onOptionChange={handleOptionChange}
+                    onSubmit={handleFormSubmit}
+                    errorMessage={errorMessage}
+                />
+            ) : (
+                <Score score={score} onReset={handleReset} />
+            )}
+        </div>
+    );
+};
+
 export default App;
